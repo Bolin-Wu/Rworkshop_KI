@@ -1,12 +1,45 @@
+#-------------------------------------------#
+#### -------------- Load packages ----------####
+#-------------------------------------------#
+
+library(tidyverse)
+#-------------------------------------------#
+#### -------------- Read data file ----------####
+#-------------------------------------------#
+
+cog_df <- read.csv(file = "data/paquid_cog.csv", )
+cov_df <- read.csv(file = "data/paquid_cov.csv")
 
 #-------------------------------------------#
-####-------------- Read data file ----------####
+#### -------------- Check data ----------####
 #-------------------------------------------#
+# check data's type 
+str(cog_df)
+str(cov_df)
+# descriptive statistics
+summary(cog_df)
+summary(cov_df)
 
-cog_df = read.csv(file = 'data/paquid_cog.csv')
-cov_df = read.csv(file = 'data/paquid_cov.csv')
+# get rid of the first column 'X'
+cog_df <- cog_df %>% select(-X)
+cov_df <- cov_df %>% select(-X)
+
+# can also use the following code to delete the first column
+# cov_df[, -1]
+
 
 #-------------------------------------------#
-####-------------- Exercise 1 ----------####
+#### ---- Generate and label variables -----####
 #-------------------------------------------#
-# Generate a variable “fu”, which means follow-up time and equals to age-age_init.
+# 1. Generate a variable “fu”, which means follow-up time and equals to age-age_init.
+
+
+# 2.	Generate a variable “dem_young”, which means age of dementia onset 
+# (variable “agedem”) ≤70 years old (use the the if/else statement).
+
+summary(cog_df)
+dem_young = ifelse(cog_df$agedem <= 70 , yes = 1, no = 0)
+# put dem_young to cog_df 
+cog_df$dem_young = dem_young
+head(cog_df)
+
