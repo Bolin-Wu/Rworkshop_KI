@@ -39,7 +39,7 @@ vignettes/*.pdf
 .Renviron
 
 # data
-.csv
+*.csv
 
 # word file
-.docx
+*.docx
