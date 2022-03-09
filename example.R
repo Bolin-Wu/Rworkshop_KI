@@ -32,9 +32,9 @@ cov_df <- cov_df %>% select(-X)
 # cov_df[, -1]
 
 
-#-------------------------------------------#
+#----------------------------------------------#
 #### ---- Generate and label variables -----####
-#-------------------------------------------#
+#----------------------------------------------#
 # 1. Generate a variable “fu”, which means follow-up time and equals to age-age_init.
 head(cov_df)
 fu = cov_df$age - cov_df$age_init
