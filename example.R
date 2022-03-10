@@ -60,3 +60,10 @@ label(cov_df[["education"]]) <- "0='Below primary school', 1='Primary school and
 View(cov_df)
 
 
+#----------------------------------------------#
+#### ----  Merge and reshape data sets -----####
+#----------------------------------------------#
+
+
+paquid = full_join(x = cog_df,y = cov_df,by = c("ID","wave"))
+head(paquid)
