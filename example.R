@@ -186,10 +186,50 @@ wide_paquid %>% select(contains(c("MEM", "BVRT", "IST")))
 #----------------------------------------------#
 #### ---------  	Summarizing data  --------####
 #----------------------------------------------#
+wide_paquid
+
+# 10.	Summarize variable “age_init” (mean, sd, quantiles, etc), 
+# summarize “age_init” by variable “male”.
+
+summary(wide_paquid$age_init)
+sd(wide_paquid$age_init)
+
+wide_paquid %>% 
+  group_by(male) %>% 
+  summarise(max = max(age_init),
+            q3 = quantile(age_init, 0.75),
+            mean = mean(age_init),
+            q1 = quantile(age_init, 0.25),
+            min = min(age_init),
+            sd = sd(age_init)
+            )
 
 
+# 11.	Summarize variable “MMSE_1” (mean, sd, quantiles, etc), 
+# summarize “age_init” by variable “male”. Note how R deals with missing values.
 
+summary(wide_paquid$MMSE_1)
+# not sure why do we need to summarize “age_init” by variable “male” again...
 
+# 12.	Tabulate variable “male”, tabulate variable “male” and “education”, 
+# add row-wise and column-wise proportions.
 
+# find frequency of elements in male
+table(wide_paquid$male)
+# male and education
+tab_male_edu = table(wide_paquid %>% select("male", "education"))
+prop.table(tab_male_edu)
+
+# it seems difficult to add column to table() directly, so we convert it to tibble first
+tib_male_edu = as_tibble(table(wide_paquid %>% select("male", "education")))
+tib_male_edu
+
+# add proportion
+tib_male_edu$proportion = tib_male_edu$n / sum(tab_male_edu)
+
+# 13.	Draw a histogram and a density plot of “MMSE_1”.
+
+hist(wide_paquid$MMSE_1)
+plot(density(wide_paquid$MMSE_1,na.rm = T))
 
 
