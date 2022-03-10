@@ -233,3 +233,53 @@ hist(wide_paquid$MMSE_1)
 plot(density(wide_paquid$MMSE_1,na.rm = T))
 
 
+#----------------------------------------------------------------#
+#### ---------Run simple models and check model output--------####
+#----------------------------------------------------------------#
+
+# 14.	Run a linear regression, with “MMSE_1” as dependent variable and “age_init” and 
+# “male” as the independent variables, assuming “MMSE_1” has a normal distribution. 
+# Check model output.
+
+linear_m = lm(formula = MMSE_1 ~ age_init + male,data = wide_paquid)
+# output
+summary(linear_m)
+summary(linear_m)$coefficients
+# this output is super useful,when we have many many combinations of dependent ~ independent 
+# variables,we can run a loop and automatically find all significant pairs 
+
+
+# residuals
+linear_m$residuals
+plot(linear_m)
+
+# fitted values
+fitted.values(linear_m)
+
+
+# 15.	Run a logistic regression, with “dem_young” as dependent variable and “male” as 
+# the independent variables.
+
+logi_m = glm(formula = dem_young ~ male,data = wide_paquid, family = binomial)
+logi_m
+
+# output
+summary(logi_m)
+summary(logi_m)$coefficients
+# similar to lm function's output
+
+# residuals
+logi_m$residuals
+
+# fitted values
+fitted.values(logi_m)
+
+probabilities  = predict(logi_m,type = "response")
+predicted.classes <- ifelse(probabilities > 0.5, 1, 0)
+predicted.classes
+summary.factor(predicted.classes == 1)
+summary.factor(wide_paquid$dem_young == 1)
+# well, the original data was not balanced...
+
+# assess accuracy
+mean(predicted.classes == wide_paquid$dem_young)
