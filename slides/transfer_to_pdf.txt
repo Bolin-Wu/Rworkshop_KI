@@ -1,0 +1,4 @@
+transfer xaringan HTML to PDF:
+
+remotes::install_github('rstudio/pagedown')
+pagedown::chrome_print('slides/R_beamer.html')

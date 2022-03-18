@@ -1,0 +1,130 @@
+% set personal infos + logo
+\titlegraphic{\vfill\includegraphics[width = 3cm]{ki-logo_vert_neg_1}}
+
+
+% the various libraries we will be using
+\usepackage[none]{hyphenat}
+\usepackage{fontspec}
+
+% outertheme
+\ifsplit
+  \useoutertheme{split}
+\else
+  \useoutertheme{miniframes}
+\fi
+
+% define colors:
+\definecolor{kiplum}{RGB}{135, 0, 82}
+\definecolor{kisilver}{RGB}{128, 128, 128}
+\definecolor{kifrost}{RGB}{202, 202, 202}
+\definecolor{kicyclamen}{RGB}{212, 9, 99}
+\definecolor{kiaqua}{RGB}{159, 230, 233}
+
+% set colours
+\setbeamercolor{itemize item}{fg = kiaqua}
+\setbeamercolor{enumerate item}{fg = kiaqua}
+
+\setbeamercolor{title}{fg = white}
+\setbeamercolor{author}{fg = white}
+\setbeamercolor{date}{fg = white}
+\setbeamercolor{frametitle}{fg = kiplum}
+
+\setbeamercolor{section in toc}{fg = kiplum}
+\setbeamercolor{author in head/foot}{fg = white, bg = kiplum}
+\setbeamercolor{title in head/foot}{fg = white, bg = kiplum!90}
+\setbeamercolor{date in head/foot}{fg = white, bg = kiplum!80}
+\setbeamercolor{section in head/foot}{fg = white, bg = kiplum}
+\setbeamercolor{subsection in head/foot}{fg = white, bg = kiplum!90}
+\setbeamercolor{alerted text}{fg = kicyclamen}
+\setbeamercolor{footline}{fg = kisilver}
+\setbeamercolor{footlinecolor}{fg = white, bg = kiplum}
+
+% set fonts, downloaded from fonts.google.com
+% set directory with all the fonts:
+\newcommand*{\fontdir}[1][Fonts/]{\def\@fontdir{#1}}
+\fontdir
+
+% main font (serif) for titles:
+\setromanfont{ScopeOne}[
+  Path = \@fontdir,
+  UprightFont = *-Regular,
+]
+
+% mono font for code:
+\setmonofont{RobotoMono}[
+  Path=\@fontdir,
+  UprightFont = *-Regular,
+  ItalicFont = *-Italic,
+  BoldFont = *-Bold,
+  BoldItalicFont = *-BoldItalic
+]
+
+% sans serif font for everything else
+\setsansfont{Roboto}[
+  Path=\@fontdir,
+  UprightFont = *-Regular,
+  ItalicFont = *-Italic,
+  BoldFont = *-Bold,
+  BoldItalicFont = *-BoldItalic,
+]
+
+\setbeamerfont{title}{family=\rmfamily, size=\Large}
+\setbeamerfont{subtitle}{family=\rmfamily}
+\setbeamerfont{author}{family=\rmfamily, size=\small}
+\setbeamerfont{institute}{family=\rmfamily, size=\footnotesize}
+\setbeamerfont{date}{family=\rmfamily, size=\footnotesize}
+\setbeamerfont{frametitle}{family=\rmfamily}
+
+% background of title page
+\setbeamertemplate{background canvas}{%
+    \ifnum\c@framenumber=0%
+        % On title page
+        \color{kiplum}\rule{\paperwidth}{\paperheight}
+    \fi%
+}
+
+\makeatother
+
+% disable navigation
+\setbeamertemplate{navigation symbols}{}
+
+% customize footline
+\setbeamertemplate{footline}
+{
+  \hbox{%
+  \begin{beamercolorbox}[wd = .333333\paperwidth, ht = .03\paperheight, dp=1ex, center]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\insertshortauthor
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd = .333333\paperwidth, ht = .03\paperheight, dp = 1ex, center]{title in head/foot}%
+    \usebeamerfont{title in head/foot}\insertshorttitle
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd = .333333\paperwidth, ht = .03\paperheight, dp = 1ex, right]{date in head/foot}%
+    \usebeamerfont{date in head/foot}\insertshortdate{}\hspace*{2em}
+    \insertframenumber{} / \inserttotalframenumber\hspace*{2ex}
+  \end{beamercolorbox}}%
+}
+
+
+% remove line before footnote:
+\renewcommand*\footnoterule{}
+
+% set beamer covered text:
+\setbeamercovered{transparent}
+
+% section and subsection titles
+\AtBeginSection[]{
+    \ifsplit
+      \begin{frame}[plain]
+          \frametitle{Table of Content}
+          \tableofcontents[currentsection]
+      \end{frame}
+      \addtocounter{framenumber}{-1}
+    \else
+      \begin{frame}[plain]
+          \frametitle{Table of Content}
+          \tableofcontents[currentsection]
+      \end{frame}
+      \addtocounter{framenumber}{-1}
+      \subsection{}
+    \fi
+}
