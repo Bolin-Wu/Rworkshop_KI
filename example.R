@@ -20,13 +20,15 @@ cov_df <- read.csv(file = "data/paquid_cov.csv")
 # check data's type
 str(cog_df)
 str(cov_df)
-# descriptive statistics
-summary(cog_df)
-summary(cov_df)
+
 
 # get rid of the first column 'X'
 cog_df <- cog_df %>% select(-X)
 cov_df <- cov_df %>% select(-X)
+
+# descriptive statistics
+summary(cog_df)
+summary(cov_df)
 
 # can also use the following code to delete the first column
 # cov_df[, -1]

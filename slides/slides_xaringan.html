@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Rworkshop</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Bolin Wu" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Rworkshop
+## Data processing in R
+### Bolin Wu
+### Aging Research Center
+### 2022-03-24 (updated: 2022-03-18)
+
+---
+
+
+
+
+# Reminder
+
+- R studio is very user-friendly. Whenever you have problem with a function, just type "?" + `function()`. For example:
+
+
+```r
+?summary
+?lm
+?data.frame
+```
+---&gt;R Studio
+
+- At first you may feel difficult. But don't worry, R has a strong user community, basically you can solve most of the problems by Google. After using R several years, I still rely heavily on Google and I keep learning new things.
+
+- Please follow alone with your computer, welcome to ask question at any time.
+
+---
+
+# Data
+
+The example data we use are `paquid_cog.csv` and `paquid_cov.csv`.
+
+--
+
+## Load package
+
+we can load the package by using `library()` function.
+- `tidyverse`: A powerful package for data wrangling, which I will show later.
+- `Hmisc`: We need this package for adding label to data.frame().
+
+
+```r
+library(tidyverse)
+library(Hmisc)
+```
+
+--
+
+## Import data
+
+There are many different functions to read data, depending on the file's type. Since we have csv file, we can use `read.csv()` to read the data.
+
+
+```r
+cog_df &lt;- read.csv(file = "data/paquid_cog.csv")
+cov_df &lt;- read.csv(file = "data/paquid_cov.csv")
+# Use ?read.csv() to check what other arguments you can put in
+```
+
+---
+
+# Explore data
+
+Usually the first thing we need to do is to check if the data are **correctly imported**.
+
+- Looking at the `Data` panel
+![](pic/Data_panel.png)
+
+--
+
+- Use `str()` function to check if the column types are as expected.
+
+
+```r
+# check data's type
+str(cog_df)
+```
+
+```
+## 'data.frame':	2250 obs. of  9 variables:
+##  $ X     : int  1 2 3 4 5 6 7 8 9 10 ...
+##  $ ID    : int  1 2 2 2 2 2 3 3 4 4 ...
+##  $ MMSE  : int  26 26 28 25 24 22 28 25 NA 22 ...
+##  $ BVRT  : int  10 13 13 12 13 9 13 6 NA 8 ...
+##  $ IST   : int  37 25 28 23 16 15 28 16 NA 27 ...
+##  $ dem   : int  0 1 1 1 1 1 0 0 0 0 ...
+##  $ agedem: num  68.5 85.6 85.6 85.6 85.6 ...
+##  $ age   : num  68.5 67 69.1 73.8 84.1 ...
+##  $ wave  : int  1 1 2 3 4 5 1 2 1 2 ...
+```
+
+---
+
+# Explore data
+
+
+```r
+# check data's type
+str(cov_df)
+```
+
+```
+## 'data.frame':	2250 obs. of  8 variables:
+##  $ X       : int  1 2 3 4 5 6 7 8 9 10 ...
+##  $ ID      : int  1 2 2 2 2 2 3 3 4 4 ...
+##  $ age_init: num  67.4 65.9 65.9 65.9 65.9 ...
+##  $ CEP     : int  1 1 1 1 1 1 1 1 1 1 ...
+##  $ male    : int  1 0 0 0 0 0 1 1 0 0 ...
+##  $ HIER    : int  2 1 1 1 3 3 1 1 1 1 ...
+##  $ age     : num  68.5 67 69.1 73.8 84.1 ...
+##  $ wave    : int  1 1 2 3 4 5 1 2 1 2 ...
+```
+
+
+--
+
+- Here we can see the data types are as expected.
+- However, there is a non-sense column "X", we need to get rid of it. The easiest way to use `select()` function from `tidyverse` package.
+
+
+```r
+# get rid of the first column 'X'
+cog_df &lt;- cog_df %&gt;% select(-X) 
+cov_df &lt;- cov_df %&gt;% select(-X)
+```
+
+---
+
+# Explore data
+
+- Use `head()` function to check the first few rows of dataframe
+
+
+```r
+head(cov_df)
+```
+
+```
+##   ID age_init CEP male HIER      age wave
+## 1  1  67.4167   1    1    2 68.50630    1
+## 2  2  65.9167   1    0    1 66.99540    1
+## 3  2  65.9167   1    0    1 69.09530    2
+## 4  2  65.9167   1    0    1 73.80720    3
+## 5  2  65.9167   1    0    3 84.14237    4
+## 6  2  65.9167   1    0    3 87.09103    5
+```
+
+- Use `class()` function to check the type of cov_df: Is it a matrix, or data.frame, or list, or tibble? 
+
+
+```r
+class(cov_df)
+```
+
+```
+## [1] "data.frame"
+```
+
+--
+
+Personally I would love to convert `data.frame` to `tibble` for data wrangling.  --&gt; R studio...
+
+---
+
+# Explore data
+
+We may also interested in checking the descriptive statistics: `summary()`
+
+
+```r
+# descriptive statistics
+summary(cog_df)
+```
+
+```
+##        ID             MMSE            BVRT            IST             dem             agedem     
+##  Min.   :  1.0   Min.   : 0.00   Min.   : 0.00   Min.   : 5.00   Min.   :0.0000   Min.   :66.87  
+##  1st Qu.:132.2   1st Qu.:25.00   1st Qu.: 9.00   1st Qu.:22.00   1st Qu.:0.0000   1st Qu.:82.03  
+##  Median :263.0   Median :27.00   Median :11.00   Median :27.00   Median :0.0000   Median :86.61  
+##  Mean   :256.2   Mean   :25.99   Mean   :10.78   Mean   :26.52   Mean   :0.3329   Mean   :85.89  
+##  3rd Qu.:376.0   3rd Qu.:29.00   3rd Qu.:13.00   3rd Qu.:31.00   3rd Qu.:1.0000   3rd Qu.:89.94  
+##  Max.   :500.0   Max.   :30.00   Max.   :15.00   Max.   :40.00   Max.   :1.0000   Max.   :99.49  
+##                  NA's   :36      NA's   :300     NA's   :198                                     
+##       age              wave      
+##  Min.   : 66.28   Min.   :1.000  
+##  1st Qu.: 75.09   1st Qu.:2.000  
+##  Median : 80.57   Median :3.000  
+##  Mean   : 80.53   Mean   :3.534  
+##  3rd Qu.: 85.77   3rd Qu.:5.000  
+##  Max.   :102.16   Max.   :9.000  
+## 
+```
+
+
+---
+
+#	Generate and label variables
+
+1.	Generate a variable “fu”, which means follow-up time and equals to age - age_init
+
+* Let's first review cov_df:
+
+
+```r
+head(cov_df)
+```
+
+```
+##   ID age_init CEP male HIER      age wave
+## 1  1  67.4167   1    1    2 68.50630    1
+## 2  2  65.9167   1    0    1 66.99540    1
+## 3  2  65.9167   1    0    1 69.09530    2
+## 4  2  65.9167   1    0    1 73.80720    3
+## 5  2  65.9167   1    0    3 84.14237    4
+## 6  2  65.9167   1    0    3 87.09103    5
+```
+
+* How do we extract a specific column? By Google you can find many ways, one of them is to use `$` sign. "[1:10]" means take the elements one to ten.
+
+```r
+cov_df$age_init[1:10]
+```
+
+```
+##  [1] 67.4167 65.9167 65.9167 65.9167 65.9167 65.9167 71.5000 71.5000 66.0000 66.0000
+```
+
+---
+#	Generate and label variables
+
+1.	Generate a variable “fu”, which means follow-up time and equals to age - age_init
+
+* Now we are ready to generate the new variable:
+
+
+```r
+fu &lt;- cov_df$age - cov_df$age_init
+# if you want to add the new variable to dataframe
+cov_df$fu &lt;- fu
+head(cov_df)
+```
+
+```
+##   ID age_init CEP male HIER      age wave       fu
+## 1  1  67.4167   1    1    2 68.50630    1  1.08960
+## 2  2  65.9167   1    0    1 66.99540    1  1.07870
+## 3  2  65.9167   1    0    1 69.09530    2  3.17860
+## 4  2  65.9167   1    0    1 73.80720    3  7.89050
+## 5  2  65.9167   1    0    3 84.14237    4 18.22567
+## 6  2  65.9167   1    0    3 87.09103    5 21.17433
+```
+
+---
+
+#	Generate and label variables
+2.Generate a variable “dem_young”, which means age of dementia onset (variable “agedem”) ≤70 years old (use the the if/else statement).
+
+--
+
+
+```r
+dem_young &lt;- ifelse(cog_df$agedem &lt;= 70, yes = 1, no = 0) 
+# put dem_young to cog_df
+cog_df$dem_young &lt;- dem_young
+head(cog_df)
+```
+
+```
+##   ID MMSE BVRT IST dem  agedem      age wave dem_young
+*## 1  1   26   10  37   0 68.5063 68.50630    1         1
+*## 2  2   26   13  25   1 85.6167 66.99540    1         0
+## 3  2   28   13  28   1 85.6167 69.09530    2         0
+## 4  2   25   12  23   1 85.6167 73.80720    3         0
+## 5  2   24   13  16   1 85.6167 84.14237    4         0
+## 6  2   22    9  15   1 85.6167 87.09103    5         0
+```
+
+---
+
+#	Generate and label variables
+3.**Rename** variable “CEP” as “education” and change the variable class to **factor**. **Label** the variable values as 0=“Below primary school”, 1=“Primary school and above”.
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "arta",
+"highlightLines": true,
+"contIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
