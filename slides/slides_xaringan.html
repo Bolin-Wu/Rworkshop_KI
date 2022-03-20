@@ -26,6 +26,10 @@ class: center, middle, inverse, title-slide
 
 # Reminder
 
+- What we will talk about next usually can take 1-2 whole sessions for a master program in order to understand the techical details. Today the main purpose is to go through the tasks that R are capable of solving. 
+
+--
+
 - R studio is very user-friendly. Whenever you have problem with a function, just type "?" + `function()`. For example:
 
 
@@ -36,9 +40,9 @@ class: center, middle, inverse, title-slide
 ```
 ---&gt;R Studio
 
-- At first you may feel difficult. But don't worry, R has a strong user community, basically you can solve most of the problems by Google. After using R several years, I still rely heavily on Google and I keep learning new things.
+--
 
-- Please follow alone with your computer, welcome to ask question at any time.
+- If possible, please follow alone with your computer, welcome to ask question at any time.
 
 ---
 
@@ -345,9 +349,50 @@ And then you can use View panel to check the label in the dataset. ---&gt; R Stu
 
 #	Merge and reshape data sets
 
+4.**Merge** datasets “paquid_cog” and “paquid_cov” to a data frame named “paquid”.
+
+--
+
+* With `join_` function: There are 4 common types of joins.
+
+
+![](pic/join_tabel.png)
+
+
+---
+
+#	Merge and reshape data sets
+
+4.**Merge** datasets “paquid_cog” and “paquid_cov” to a data frame named “paquid”.
+
+
+```r
+paquid &lt;- full_join(x = cog_df, y = cov_df, by = c("ID", "wave", "age"))
+head(paquid)
+```
+
+```
+##   ID MMSE BVRT IST dem  agedem      age wave dem_young age_init education male HIER       fu
+## 1  1   26   10  37   0 68.5063 68.50630    1         1  67.4167         1    1    2  1.08960
+## 2  2   26   13  25   1 85.6167 66.99540    1         0  65.9167         1    0    1  1.07870
+## 3  2   28   13  28   1 85.6167 69.09530    2         0  65.9167         1    0    1  3.17860
+## 4  2   25   12  23   1 85.6167 73.80720    3         0  65.9167         1    0    1  7.89050
+## 5  2   24   13  16   1 85.6167 84.14237    4         0  65.9167         1    0    3 18.22567
+## 6  2   22    9  15   1 85.6167 87.09103    5         0  65.9167         1    0    3 21.17433
+```
+
+
+--
+
+* With `merge` function:
 
 
 
+---
+
+# Ending
+
+- At first you may feel difficult. But don't worry, R has a strong user community, basically you can solve most of the problems by Google. After using R several years, I still rely heavily on Google and I keep learning new things.
 
 
 
