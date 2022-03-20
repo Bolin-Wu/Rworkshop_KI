@@ -17,7 +17,7 @@ class: center, middle, inverse, title-slide
 ## Data processing in R
 ### Bolin Wu
 ### Aging Research Center
-### 2022-03-24 (updated: 2022-03-18)
+### 2022-03-24 (updated: 2022-03-20)
 
 ---
 
@@ -295,6 +295,60 @@ head(cog_df)
 
 #	Generate and label variables
 3.**Rename** variable “CEP” as “education” and change the variable class to **factor**. **Label** the variable values as 0=“Below primary school”, 1=“Primary school and above”.
+
+--
+
+* We can rename a specific column "CEP" as follows:
+
+
+```r
+colnames(cov_df)[colnames(cov_df) == "CEP"] &lt;- "education"
+head(cov_df)
+```
+
+```
+##   ID age_init education male HIER      age wave       fu
+## 1  1  67.4167         1    1    2 68.50630    1  1.08960
+## 2  2  65.9167         1    0    1 66.99540    1  1.07870
+## 3  2  65.9167         1    0    1 69.09530    2  3.17860
+## 4  2  65.9167         1    0    1 73.80720    3  7.89050
+## 5  2  65.9167         1    0    3 84.14237    4 18.22567
+## 6  2  65.9167         1    0    3 87.09103    5 21.17433
+```
+
+---
+
+#	Generate and label variables
+3.**Rename** variable “CEP” as “education” and change the variable class to **factor**. **Label** the variable values as 0=“Below primary school”, 1=“Primary school and above”.
+
+* To label the variable we need to use the fore-mentioned `Hmisc` package. 
+
+--
+
+Actually this is also new for me...
+
+--
+
+
+
+```r
+label(cov_df[["education"]]) &lt;- "0='Below primary school', 1='Primary school and above'"
+```
+
+--
+
+And then you can use View panel to check the label in the dataset. ---&gt; R Studio.
+
+---
+
+
+
+#	Merge and reshape data sets
+
+
+
+
+
 
 
 

@@ -188,5 +188,47 @@ head(cog_df)
 #	Generate and label variables
 3.**Rename** variable “CEP” as “education” and change the variable class to **factor**. **Label** the variable values as 0=“Below primary school”, 1=“Primary school and above”.
 
+--
+
+* We can rename a specific column "CEP" as follows:
+
+```{r}
+colnames(cov_df)[colnames(cov_df) == "CEP"] <- "education"
+head(cov_df)
+```
+
+---
+
+#	Generate and label variables
+3.**Rename** variable “CEP” as “education” and change the variable class to **factor**. **Label** the variable values as 0=“Below primary school”, 1=“Primary school and above”.
+
+* To label the variable we need to use the fore-mentioned `Hmisc` package. 
+
+--
+
+Actually this is also new for me...
+
+--
+
+
+```{r}
+label(cov_df[["education"]]) <- "0='Below primary school', 1='Primary school and above'"
+```
+
+--
+
+And then you can use View panel to check the label in the dataset. ---> R Studio.
+
+---
+
+
+
+#	Merge and reshape data sets
+
+
+
+
+
+
 
 
