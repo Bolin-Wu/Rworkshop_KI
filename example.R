@@ -85,7 +85,7 @@ head(paquid2)
 
 # 5.	Reshape the “paquid” data to wide format.
 
-# first we need to see how many waves are included
+# first lets see how many waves are included
 summary.factor(paquid$wave)
 
 head(cog_df)
@@ -126,7 +126,7 @@ wide_paquid <- as_tibble(wide_paquid)
 # (1) use rowSums
 paquid_MMSE <- wide_paquid %>% select(c("ID", contains("MMSE")))
 paquid_MMSE
-MMSE_M <- rowSums(is.na(paquid_MSME))
+MMSE_M <- rowSums(is.na(paquid_MMSE))
 MMSE_M
 # merge the vector to the tibble
 paquid_MMSE$MMSE = MMSE_M
@@ -146,17 +146,18 @@ wide_paquid %>% select(contains("MMSE"))
 # 8.	Generate variables “MEM_1”, “MEM_2”, …, “MEM_9”. 
 # which equals the mean of “BVRT” and “IST” at each time point.
 
-# this tibble is the "raw material"
+# this tibble is the "ingredient"
 wide_paquid %>% select(contains(c("ID","BVRT","IST")))
 
 # let's first state with MEM_1
 
-wide_paquid %>% select(contains(c("ID","BVRT_1","IST_1")))  %>% 
-  rowwise("ID") %>% 
-  mutate(MEM_1 = mean(c(BVRT_1,IST_1))) %>% 
+wide_paquid %>%
+  select(contains(c("ID", "BVRT_1", "IST_1"))) %>%
+  rowwise("ID") %>%
+  mutate(MEM_1 = mean(c(BVRT_1, IST_1))) %>%
   ungroup()
 
-# can we do the above process directly on the whole long dataframe?
+# can we do the above process directly on the whole wide dataframe?
 # Yes!
 wide_paquid  %>% 
   rowwise("ID") %>% 

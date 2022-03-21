@@ -59,6 +59,9 @@ library(tidyverse)
 library(Hmisc)
 ```
 
+```{r, include=FALSE}
+library(DT)
+```
 --
 
 ## Import data
@@ -167,7 +170,7 @@ cov_df$age_init[1:10]
 * Now we are ready to generate the new variable:
 
 ```{r}
-fu <- cov_df$age - cov_df$age_init
+fu <- cov_df$age - cov_df$age_init 
 # if you want to add the new variable to dataframe
 cov_df$fu <- fu
 head(cov_df)
@@ -200,6 +203,11 @@ head(cog_df)
 colnames(cov_df)[colnames(cov_df) == "CEP"] <- "education"
 head(cov_df)
 ```
+
+
+--
+
+* Wait, what is going on here? ---> R studio
 
 ---
 
@@ -251,17 +259,447 @@ head(paquid)
 ```
 
 
+---
+
+#	Merge and reshape data sets
+
+* With `merge` function: In merge function, it finds columns with the same name by default. Therefore we only need to specify x and y data sets. You can recheck this by reading `?merge`. 
+
+```{r}
+paquid2 <- merge(x = cog_df, y = cov_df)
+head(paquid2,n = 3)
+```
+
 --
 
-* With `merge` function:
+* This result is difficult to compare with paquid. We can reorder paquid2 so that it has the same column/row order as paquid.
 
+---
+
+```{r}
+paquid2 <- paquid2[order(paquid2$ID), names(paquid)]
+head(paquid2,n = 3)
+head(paquid,n = 3)
+
+```
 
 
 ---
 
+# Merge and reshape data sets
+
+5.Reshape the “paquid” data to **wide** format.
+
+* Reshaping a data set is pretty tricky, usually I need to test out several times before I can arrive the final interested format.
+
+![](pic/spread_table.png)
+
+---
+
+# Merge and reshape data sets
+
+* Points to consider:
+
+1. What is the variable that measures the time span?
+2. What variables we would like to spread? Is it only one column to spread, or multiple?
+3. What variables are unchanged?
+
+---
+
+# Merge and reshape data sets
+
+* Time span: column `wave` represents the time span.
+
+```{r}
+summary.factor(paquid$wave)
+```
+
+--
+
+* Columns to change
+  * If only spread `MMSE` column
+
+```{r}
+paquid_wide = spread(data = paquid, value = "MMSE", key = "wave", sep = "MMSE")
+```
+
+```{r}
+datatable(paquid_wide)
+```
+
+---
+
+* Columns to change
+  * If only spread `MMSE` column.
+  * If we want to change all the columns varying at waves. (`reshape()` function)
+
+```{r}
+# timevar: the variable in long format that differentiates multiple records from the same group or individual.
+# idvar: Columns that will not be affected, stay the same
+unchange_column <- c("ID", "age_init", "education", "male", "agedem", "dem", "dem_young")
+wide_paquid <- reshape(data = paquid, timevar = "wave", idvar = unchange_column, direction = "wide", sep = "_")
+datatable(wide_paquid)
+
+```
+
+---
+
+# Row-wise calculation
+
+6.Generate a variable named “MMSE_M”, which is the number of missing values across variables “MMSE_1”, “MMSE_2”, …, “MMSE_9” per individual. Label the variable as “the number of missing values in MMSE”.
+
+```{r}
+# convert dataframe to tibble for faster data cleaning
+wide_paquid <- as_tibble(wide_paquid)
+paquid_MMSE <- wide_paquid %>% select(c("ID", contains("MMSE")))
+datatable(paquid_MMSE)
+
+```
+
+---
+
+# Row-wise calculation
+
+* Use `rowSums` combined with `is.na`.
+
+```{r}
+MMSE_M <- rowSums(is.na(paquid_MMSE))
+length(MMSE_M)
+MMSE_M[1:10]
+# merge the vector to the tibble
+paquid_MMSE$MMSE = MMSE_M
+```
+
+---
+# Row-wise calculation
+
+7.View variables that contain “MMSE”.
+
+* Use the `selection` from `tidyverse` package. 
+
+```{r, results='hide'}
+wide_paquid %>% 
+  select(contains("MMSE")) 
+```
+
+--
+
+Beautiful syntax with pipeline, just like playing LEGO. ---> R studio 
+
+![](pic/legos.jpg)
+
+
+---
+
+# Row-wise calculation
+
+8.Generate variables “MEM_1”, “MEM_2”, …, “MEM_9” which equals the mean of “BVRT” and “IST” at each time point.
+
+--
+
+* The original wide format data set has too many columns... Let's start with one babystep first:
+
+```{r}
+# this tibble is the "ingredient"
+wide_paquid %>% select(contains(c("ID","BVRT","IST")))
+```
+
+
+---
+
+# Row-wise calculation
+* What should MEM_1 look like?
+
+$$ MEM_1 = (BVRT_1+IST_1)/2 $$
+
+--
+
+```{r, highlight.output=c(4)}
+wide_paquid %>%
+  select(contains(c("ID", "BVRT_1", "IST_1"))) %>%
+  rowwise("ID") %>% # indicate the row index
+  mutate(MEM_1 = mean(c(BVRT_1, IST_1))) %>% # mutate: create new column
+  ungroup() # need to ungroup for rowwise calculation
+```
+
+---
+
+# Row-wise calculation
+
+* Can we do the above process directly on the whole wide dataframe? --- Yes!
+
+```{r}
+wide_paquid  %>% 
+  rowwise("ID") %>% 
+  mutate(MEM_1 = mean(c(BVRT_1,IST_1))) %>% 
+  ungroup() %>% 
+  datatable()
+
+```
+
+---
+
+# Row-wise calculation
+
+* We can do the same procedure for the rest eight variables by loop and assign() function. This flexibility renders R an advantage concerning repetitive work.
+
+```{r}
+for (i in 1:9) {
+  BVRT_i = paste0("BVRT_", i)
+  IST_i = paste0("IST_", i)
+  # create new variable name
+  MEM_i = paste0("MEM_", i)
+  # assign value to each new variable
+  wide_paquid = wide_paquid  %>% 
+    rowwise("ID") %>% 
+    mutate(!!sym(MEM_i) := mean(c(get(BVRT_i),get(IST_i)))) %>% 
+    ungroup()
+}
+# sym(new_col_name) := is a dynamic way of writing MEM_1 = , MEM_2 = ,etc 
+# when using functions like mutate()
+# in the tidyr package
+
+```
+
+---
+
+# Row-wise calculation
+
+9.View variables that contain “MEM”, “BVRT”, or “IST”.:
+
+```{r}
+wide_paquid %>% 
+  select(contains(c("ID", "MEM", "BVRT","IST"))) %>% 
+  datatable()
+```
+
+---
+
+# Summarizing data
+
+10.Summarize variable “age_init” (mean, sd, quantiles, etc), summarize “age_init” by variable “male”.
+
+* As is shown before, we can use `summary` function.
+
+```{r}
+summary(wide_paquid$age_init)
+# sd is missing, we can calculate it with sd() function
+sd(wide_paquid$age_init)
+```
+
+---
+
+# Summarizing data
+* If we would like to summary by a specific group: Use `group_by` function and `summarise` function, connected by pipeline:
+
+```{r}
+wide_paquid %>% 
+  group_by(male) %>% 
+  summarise(max = max(age_init),
+            q3 = quantile(age_init, 0.75),
+            mean = mean(age_init),
+            q1 = quantile(age_init, 0.25),
+            min = min(age_init),
+            sd = sd(age_init)
+            )
+
+```
+
+---
+
+# Summarizing data
+
+11.Summarize variable “MMSE_1” (mean, sd, quantiles, etc), summarize “age_init” by variable “male”. Note how R deals with missing values.
+
+--
+
+This question is similar to the previous one. I would leave it to the audience.
+
+---
+
+# Summarizing data
+
+12.Tabulate variable “male”, tabulate variable “male” and “education”, add row-wise and column-wise proportions.
+
+* Find frequency of elements in male
+
+```{r}
+table(wide_paquid$male)
+```
+
+--
+
+* Male and education
+```{r}
+tab_male_edu = table(wide_paquid %>% select("male", "education"))
+prop.table(tab_male_edu)
+```
+
+---
+
+# Summarizing data
+
+* It seems difficult to add column to table() directly, so we convert it to tibble first
+
+```{r}
+tib_male_edu = as_tibble(table(wide_paquid %>% select("male", "education")))
+tib_male_edu
+```
+
+---
+
+# Summarizing data
+
+* Add proportion column to the tibble:
+```{r}
+tib_male_edu$proportion = tib_male_edu$n / 500
+tib_male_edu
+```
+
+---
+
+# Summarizing data
+
+13.Draw a histogram and a density plot of “MMSE_1”: Use `hist` and `plot` function:
+
+```{r}
+hist(wide_paquid$MMSE_1)
+```
+
+---
+
+# Summarizing data
+
+```{r}
+plot(density(wide_paquid$MMSE_1,na.rm = T))
+```
+
+---
+
+# Run simple models and check model output
+
+14.Run a linear regression, with **“MMSE_1”** as **dependent** variable and **“age_init”** and **“male”** as the **independent** variables, assuming “MMSE_1” has a normal distribution. Check model output.
+
+--
+
+* Use `lm` function. --->R studio
+
+```{r, results='hide'}
+linear_m = lm(formula = MMSE_1 ~ age_init + male,data = wide_paquid)
+```
+
+---
+# Run simple models and check model output
+
+* Output from `summary` function:
+```{r}
+summary(linear_m)
+```
+
+---
+# Run simple models and check model output
+
+* Extract certain information from `summary` function:
+
+```{r}
+summary(linear_m)$coefficients
+```
+
+--
+
+This output is super useful, when we have many combinations of dependent ~ independent. For example:
+
+* Assuming we have 12 air pollution variables & 10 MRI variables. There are 120 pairs in total.
+* We want to find which air pollutants could be significant in linear regression with MRI. Controlling for age, education, gender, etc...
+
+--
+
+* A loop can easily solve this problem! (Code script is available if anyone needs.)
+
+---
+
+# Run simple models and check model output
+
+* Check the residual for model evaluation: ---> R studio
+
+```{r, eval=FALSE}
+# residuals
+linear_m$residuals
+plot(linear_m)
+```
+
+---
+
+# Run simple models and check model output
+
+15.Run a logistic regression, with “dem_young” as dependent variable and “male” as the independent variables.
+
+* Use `glm` function, set family = binomial. It is similar to `lm` function.
+
+```{r}
+logi_m = glm(formula = dem_young ~ male,data = wide_paquid, family = binomial)
+logi_m
+
+```
+
+---
+
+# Run simple models and check model output
+
+```{r, results='hide'}
+# output
+summary(logi_m)
+summary(logi_m)$coefficients
+# similar to lm function's output
+
+# residuals
+logi_m$residuals
+
+# fitted values
+fitted.values(logi_m)
+
+```
+
+---
+
+# Run simple models and check model output
+
+* For binary estimation, we are usually interested in the predicted probability for each observation and the overall prediction accuracy.
+
+$$ \text{accuracy} = \frac{ \text{Number of correct prediction} }{ \text{Number of ovservation}}$$
+
+```{r}
+# probability
+probabilities  = predict(logi_m,type = "response")
+probabilities[1:5]
+
+# overall accuracy, assume threshold = 0.5
+dicted.classes <- ifelse(probabilities > 0.5, 1, 0)
+mean(predicted.classes == wide_paquid$dem_young)
+```
+
+---
+
+
 # Ending
 
-- At first you may feel difficult. But don't worry, R has a strong user community, basically you can solve most of the problems by Google. After using R several years, I still rely heavily on Google and I keep learning new things.
+* At first you may feel difficult. But don't worry, R has a strong user community, basically you can solve most of the problems by Google. 
+
+--
+
+* After using R several years, I still rely heavily on Google and I keep learning new things. 
+
+--
+
+* Because of its strong community, R now has many extensions. For example, this whole slide is written by R...
+
+--
+
+* R code for all the exercises is available on my github page: https://github.com/Bolin-Wu/Rworkshop_KI. If you have any question please feel free to ask and we can discuss together!
+
+
+
+
 
 
 
