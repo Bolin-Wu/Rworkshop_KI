@@ -41,14 +41,14 @@ as_tibble(cog_df)
 #----------------------------------------------#
 #### ---- Generate and label variables -----####
 #----------------------------------------------#
-# 1. Generate a variable “fu”, which means follow-up time and equals to age-age_init.
+# 1. Generate a variable "fu", which means follow-up time and equals to age-age_init.
 head(cov_df)
 fu <- cov_df$age - cov_df$age_init
 cov_df$fu <- fu
 head(cov_df)
 
-# 2.	Generate a variable “dem_young”, which means age of dementia onset
-# (variable “agedem”) =70 years old (use the the if/else statement).
+# 2.	Generate a variable "dem_young", which means age of dementia onset
+# (variable "agedem") =70 years old (use the the if/else statement).
 
 summary(cog_df)
 dem_young <- ifelse(cog_df$agedem <= 70, yes = 1, no = 0)
@@ -56,21 +56,24 @@ dem_young <- ifelse(cog_df$agedem <= 70, yes = 1, no = 0)
 cog_df$dem_young <- dem_young
 head(cog_df)
 
-# 3.	Rename variable “CEP” as “education” and change the variable class to factor.
+# 3.	Rename variable "CEP" as "education" and change the variable class to factor.
 colnames(cov_df)[colnames(cov_df) == "CEP"] <- "education"
 head(cov_df)
 
-# 3. Label the variable values as 0=“Below primary school”, 1=“Primary school and above”.
+# 3. Label the variable values as 0="Below primary school", 1="Primary school and above".
 label(cov_df[["education"]]) <- "0='Below primary school', 1='Primary school and above'"
 # check if the label is added
 View(cov_df)
+
+cov_label = factor(x = cov_df[["education"]],levels = c(0,1),labels = c('Below primary school','Primary school and above'))
+cov_label
 
 
 #----------------------------------------------#
 #### ----  Merge and reshape data sets -----####
 #----------------------------------------------#
 
-# 4.	Merge datasets “paquid_cog” and “paquid_cov” to a data frame named “paquid”.
+# 4.	Merge datasets "paquid_cog" and "paquid_cov" to a data frame named "paquid".
 
 # with _join function
 paquid <- full_join(x = cog_df, y = cov_df, by = c("ID", "wave", "age"))
@@ -83,7 +86,7 @@ paquid2 <- paquid2[order(paquid2$ID), names(paquid)]
 head(paquid2)
 # great, the results from two functions are the same.
 
-# 5.	Reshape the “paquid” data to wide format.
+# 5.	Reshape the "paquid" data to wide format.
 
 # first lets see how many waves are included
 summary.factor(paquid$wave)
@@ -104,7 +107,7 @@ spread(data = paquid, value = "MMSE", key = "wave", sep = "MMSE")
 # use reshape() function
 # timevar: the variable in long format that differentiates multiple records from the same group or individual.
 # idvar: Columns that will not be affected, stay the same
-unchange_column <- c("ID", "age_init", "education", "male", "agedem", "dem", "dem_young")
+unchange_column <- c("ID", "age_init", "education", "male", "agedem", "dem")
 wide_paquid <- reshape(data = paquid, timevar = "wave", idvar = unchange_column, direction = "wide", sep = "_")
 head(wide_paquid)
 # it can spread multiple columns at a time
@@ -116,9 +119,9 @@ head(wide_paquid)
 #### -------  	Row-wise calculation  ------####
 #----------------------------------------------#
 
-# 6.	Generate a variable named “MMSE_M”, which is the number of missing values across
-# variables “MMSE_1”, “MMSE_2”, …, “MMSE_9” per individual. Label the variable as
-# “the number of missing values in MMSE”.
+# 6.	Generate a variable named "MMSE_M", which is the number of missing values across
+# variables "MMSE_1", "MMSE_2", …, "MMSE_9" per individual. Label the variable as
+# "the number of missing values in MMSE".
 head(wide_paquid)
 # convert dataframe to tibble for faster data cleaning
 wide_paquid <- as_tibble(wide_paquid)
@@ -140,11 +143,13 @@ paquid_MMSE <- wide_paquid %>%
 paquid_MMSE
 View(paquid_MMSE)
 
-# 7.	View variables that contain “MMSE”.
-wide_paquid %>% select(contains("MMSE"))
+# 7.	View variables that contain "MMSE".
+wide_paquid %>% 
+  select(contains("MMSE")) %>% 
+  filter(MMSE_1 < 25) 
 
-# 8.	Generate variables “MEM_1”, “MEM_2”, …, “MEM_9”. 
-# which equals the mean of “BVRT” and “IST” at each time point.
+# 8.	Generate variables "MEM_1", "MEM_2", …, "MEM_9". 
+# which equals the mean of "BVRT" and "IST" at each time point.
 
 # this tibble is the "ingredient"
 wide_paquid %>% select(contains(c("ID","BVRT","IST")))
@@ -180,7 +185,7 @@ for (i in 1:9) {
 # in the tidyr package
 
 
-# 9.	View variables that contain “MEM”, “BVRT”, or “IST”.
+# 9.	View variables that contain "MEM", "BVRT", or "IST".
 wide_paquid %>% select(contains(c("MEM", "BVRT", "IST")))
 
 
@@ -191,8 +196,8 @@ wide_paquid %>% select(contains(c("MEM", "BVRT", "IST")))
 #----------------------------------------------#
 wide_paquid
 
-# 10.	Summarize variable “age_init” (mean, sd, quantiles, etc), 
-# summarize “age_init” by variable “male”.
+# 10.	Summarize variable "age_init" (mean, sd, quantiles, etc), 
+# summarize "age_init" by variable "male".
 
 summary(wide_paquid$age_init)
 sd(wide_paquid$age_init)
@@ -208,13 +213,13 @@ wide_paquid %>%
             )
 
 
-# 11.	Summarize variable “MMSE_1” (mean, sd, quantiles, etc), 
-# summarize “age_init” by variable “male”. Note how R deals with missing values.
+# 11.	Summarize variable "MMSE_1" (mean, sd, quantiles, etc), 
+# summarize "age_init" by variable "male". Note how R deals with missing values.
 
 summary(wide_paquid$MMSE_1)
-# not sure why do we need to summarize “age_init” by variable “male” again...
+# not sure why do we need to summarize "age_init" by variable "male" again...
 
-# 12.	Tabulate variable “male”, tabulate variable “male” and “education”, 
+# 12.	Tabulate variable "male", tabulate variable "male" and "education", 
 # add row-wise and column-wise proportions.
 
 # find frequency of elements in male
@@ -230,7 +235,7 @@ tib_male_edu
 # add proportion
 tib_male_edu$proportion = tib_male_edu$n / sum(tab_male_edu)
 
-# 13.	Draw a histogram and a density plot of “MMSE_1”.
+# 13.	Draw a histogram and a density plot of "MMSE_1".
 
 hist(wide_paquid$MMSE_1)
 plot(density(wide_paquid$MMSE_1,na.rm = T))
@@ -240,8 +245,8 @@ plot(density(wide_paquid$MMSE_1,na.rm = T))
 #### ---------Run simple models and check model output--------####
 #----------------------------------------------------------------#
 
-# 14.	Run a linear regression, with “MMSE_1” as dependent variable and “age_init” and 
-# “male” as the independent variables, assuming “MMSE_1” has a normal distribution. 
+# 14.	Run a linear regression, with "MMSE_1" as dependent variable and "age_init" and 
+# "male" as the independent variables, assuming "MMSE_1" has a normal distribution. 
 # Check model output.
 
 linear_m = lm(formula = MMSE_1 ~ age_init + male,data = wide_paquid)
@@ -260,7 +265,7 @@ plot(linear_m)
 fitted.values(linear_m)
 
 
-# 15.	Run a logistic regression, with “dem_young” as dependent variable and “male” as 
+# 15.	Run a logistic regression, with "dem_young" as dependent variable and "male" as 
 # the independent variables.
 
 logi_m = glm(formula = dem_young ~ male,data = wide_paquid, family = binomial)
