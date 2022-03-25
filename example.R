@@ -25,6 +25,9 @@ str(cov_df)
 # get rid of the first column 'X'
 cog_df <- cog_df %>% select(-X)
 cov_df <- cov_df %>% select(-X)
+cog_df %>%
+  select(-X) %>%
+  filter(age < 70)
 
 # descriptive statistics
 summary(cog_df)
@@ -65,7 +68,7 @@ label(cov_df[["education"]]) <- "0='Below primary school', 1='Primary school and
 # check if the label is added
 View(cov_df)
 
-cov_label = factor(x = cov_df[["education"]],levels = c(0,1),labels = c('Below primary school','Primary school and above'))
+cov_label <- factor(x = cov_df[["education"]], levels = c(0, 1), labels = c("Below primary school", "Primary school and above"))
 cov_label
 
 
@@ -132,7 +135,7 @@ paquid_MMSE
 MMSE_M <- rowSums(is.na(paquid_MMSE))
 MMSE_M
 # merge the vector to the tibble
-paquid_MMSE$MMSE = MMSE_M
+paquid_MMSE$MMSE <- MMSE_M
 
 # (2) use rowwise()
 paquid_MMSE <- wide_paquid %>%
@@ -144,15 +147,15 @@ paquid_MMSE
 View(paquid_MMSE)
 
 # 7.	View variables that contain "MMSE".
-wide_paquid %>% 
-  select(contains("MMSE")) %>% 
-  filter(MMSE_1 < 25) 
+wide_paquid %>%
+  select(contains("MMSE")) %>%
+  filter(MMSE_1 < 25)
 
-# 8.	Generate variables "MEM_1", "MEM_2", …, "MEM_9". 
+# 8.	Generate variables "MEM_1", "MEM_2", …, "MEM_9".
 # which equals the mean of "BVRT" and "IST" at each time point.
 
 # this tibble is the "ingredient"
-wide_paquid %>% select(contains(c("ID","BVRT","IST")))
+wide_paquid %>% select(contains(c("ID", "BVRT", "IST")))
 
 # let's first state with MEM_1
 
@@ -164,20 +167,20 @@ wide_paquid %>%
 
 # can we do the above process directly on the whole wide dataframe?
 # Yes!
-wide_paquid  %>% 
-  rowwise("ID") %>% 
-  mutate(MEM_1 = mean(c(BVRT_1,IST_1))) %>% 
+wide_paquid %>%
+  rowwise("ID") %>%
+  mutate(MEM_1 = mean(c(BVRT_1, IST_1))) %>%
   ungroup()
 
 
 # we can do the same procedure for the rest eight variables by loop and assign() function
 for (i in 1:9) {
-  BVRT_i = paste0("BVRT_", i)
-  IST_i = paste0("IST_", i)
-  MEM_i = paste0("MEM_", i)
-  wide_paquid = wide_paquid  %>% 
-    rowwise("ID") %>% 
-    mutate(!!sym(MEM_i) := mean(c(get(BVRT_i),get(IST_i)))) %>% 
+  BVRT_i <- paste0("BVRT_", i)
+  IST_i <- paste0("IST_", i)
+  MEM_i <- paste0("MEM_", i)
+  wide_paquid <- wide_paquid %>%
+    rowwise("ID") %>%
+    mutate(!!sym(MEM_i) := mean(c(get(BVRT_i), get(IST_i)))) %>%
     ungroup()
 }
 
@@ -196,65 +199,66 @@ wide_paquid %>% select(contains(c("MEM", "BVRT", "IST")))
 #----------------------------------------------#
 wide_paquid
 
-# 10.	Summarize variable "age_init" (mean, sd, quantiles, etc), 
+# 10.	Summarize variable "age_init" (mean, sd, quantiles, etc),
 # summarize "age_init" by variable "male".
 
 summary(wide_paquid$age_init)
 sd(wide_paquid$age_init)
 
-wide_paquid %>% 
-  group_by(male) %>% 
-  summarise(max = max(age_init),
-            q3 = quantile(age_init, 0.75),
-            mean = mean(age_init),
-            q1 = quantile(age_init, 0.25),
-            min = min(age_init),
-            sd = sd(age_init)
-            )
+wide_paquid %>%
+  group_by(male) %>%
+  summarise(
+    max = max(age_init),
+    q3 = quantile(age_init, 0.75),
+    mean = mean(age_init),
+    q1 = quantile(age_init, 0.25),
+    min = min(age_init),
+    sd = sd(age_init)
+  )
 
 
-# 11.	Summarize variable "MMSE_1" (mean, sd, quantiles, etc), 
+# 11.	Summarize variable "MMSE_1" (mean, sd, quantiles, etc),
 # summarize "age_init" by variable "male". Note how R deals with missing values.
 
 summary(wide_paquid$MMSE_1)
 # not sure why do we need to summarize "age_init" by variable "male" again...
 
-# 12.	Tabulate variable "male", tabulate variable "male" and "education", 
+# 12.	Tabulate variable "male", tabulate variable "male" and "education",
 # add row-wise and column-wise proportions.
 
 # find frequency of elements in male
 table(wide_paquid$male)
 # male and education
-tab_male_edu = table(wide_paquid %>% select("male", "education"))
+tab_male_edu <- table(wide_paquid %>% select("male", "education"))
 prop.table(tab_male_edu)
 
 # it seems difficult to add column to table() directly, so we convert it to tibble first
-tib_male_edu = as_tibble(table(wide_paquid %>% select("male", "education")))
+tib_male_edu <- as_tibble(table(wide_paquid %>% select("male", "education")))
 tib_male_edu
 
 # add proportion
-tib_male_edu$proportion = tib_male_edu$n / sum(tab_male_edu)
+tib_male_edu$proportion <- tib_male_edu$n / sum(tab_male_edu)
 
 # 13.	Draw a histogram and a density plot of "MMSE_1".
 
 hist(wide_paquid$MMSE_1)
-plot(density(wide_paquid$MMSE_1,na.rm = T))
+plot(density(wide_paquid$MMSE_1, na.rm = T))
 
 
 #----------------------------------------------------------------#
 #### ---------Run simple models and check model output--------####
 #----------------------------------------------------------------#
 
-# 14.	Run a linear regression, with "MMSE_1" as dependent variable and "age_init" and 
-# "male" as the independent variables, assuming "MMSE_1" has a normal distribution. 
+# 14.	Run a linear regression, with "MMSE_1" as dependent variable and "age_init" and
+# "male" as the independent variables, assuming "MMSE_1" has a normal distribution.
 # Check model output.
 
-linear_m = lm(formula = MMSE_1 ~ age_init + male,data = wide_paquid)
+linear_m <- lm(formula = MMSE_1 ~ age_init + male, data = wide_paquid)
 # output
 summary(linear_m)
 summary(linear_m)$coefficients
-# this output is super useful,when we have many many combinations of dependent ~ independent 
-# variables,we can run a loop and automatically find all significant pairs 
+# this output is super useful,when we have many many combinations of dependent ~ independent
+# variables,we can run a loop and automatically find all significant pairs
 
 
 # residuals
@@ -265,10 +269,10 @@ plot(linear_m)
 fitted.values(linear_m)
 
 
-# 15.	Run a logistic regression, with "dem_young" as dependent variable and "male" as 
+# 15.	Run a logistic regression, with "dem_young" as dependent variable and "male" as
 # the independent variables.
 
-logi_m = glm(formula = dem_young ~ male,data = wide_paquid, family = binomial)
+logi_m <- glm(formula = dem_young ~ male, data = wide_paquid, family = binomial)
 logi_m
 
 # output
@@ -282,7 +286,7 @@ logi_m$residuals
 # fitted values
 fitted.values(logi_m)
 
-probabilities  = predict(logi_m,type = "response")
+probabilities <- predict(logi_m, type = "response")
 predicted.classes <- ifelse(probabilities > 0.5, 1, 0)
 predicted.classes
 summary.factor(predicted.classes == 1)

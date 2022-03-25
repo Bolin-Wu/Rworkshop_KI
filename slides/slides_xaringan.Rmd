@@ -260,7 +260,7 @@ label(cov_df[["education"]]) <- "0='Below primary school', 1='Primary school and
 
 --
 
-And then you can use View panel to check the label in the dataset. ---> R Studio.
+And then you can use View panel to check the label in the dataset.---> R Studio.
 
 --
 
@@ -271,7 +271,7 @@ cov_label = factor(x = cov_df[["education"]],levels = c(0,1),labels = c('Below p
 head(cov_label)
 ```
 
---
+---
 
 #	Merge and reshape data sets
 
@@ -443,8 +443,6 @@ paquid_MMSE$MMSE = MMSE_M
 wide_paquid %>% 
   select(contains("MMSE")) 
 ```
-
-%>% 
 
 
 ---
