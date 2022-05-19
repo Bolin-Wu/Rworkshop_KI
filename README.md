@@ -3,6 +3,7 @@
 * This repository is to share the code for the R workshop exercise.
 * Data paquid_cog.csv and paquid_cov.csv are available in the data file.
 * The code in `example.R` contains solutions for the following questions.
+* The slide is available [here](https://bolin-wu.github.io/Rworkshop_KI_slide/#1)
 
 
 ## Generate and label variables
